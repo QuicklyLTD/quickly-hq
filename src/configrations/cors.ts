@@ -8,9 +8,16 @@ const whitelist = [
     'https://quickly.market',
 ];
 
+const extraOrigins = (process.env.CORS_ORIGINS || '')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+
+const allowlist = new Set([...whitelist, ...extraOrigins]);
+
 export const corsOptions: CorsOptions = {
     origin: function (origin, callback) {
-        if (whitelist.indexOf(origin) !== -1) {
+        if (!origin || allowlist.has(origin)) {
             callback(null, true)
         } else {
             callback(null, false)

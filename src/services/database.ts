@@ -4,8 +4,12 @@ export const initializeMenu = async () => {
     console.log('initializeMenu Service Started: InMemory Menu Database Initializing...')
     try {
         const Database = (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
+        if (!Database) {
+            console.log('initializeMenu skipped: management database entry "CouchRadore" was not found.')
+            return;
+        }
         const RemoteMenuDatabase = RemoteDB(Database, 'quickly-menu-app');
-        await MenuDB.Local.replicate.from(RemoteMenuDatabase)
+        await MenuDB.Local.replicate.from(RemoteMenuDatabase )
             .on('complete', (listener) => {
                 console.log('Local Menu Database Initialized....')
                 MenuDB.Memory.sync(MenuDB.Local).on('complete', (listener) => {
@@ -13,7 +17,7 @@ export const initializeMenu = async () => {
                 })
             })
     } catch (error) {
-        console.log(error);
+        console.log('initializeMenu failed:', error);
     }
 
 }

@@ -22,7 +22,8 @@
             ]
         },
         "lib": [
-            "esnext"
+            "esnext",
+            "dom"
         ]
     },
     "exclude": [

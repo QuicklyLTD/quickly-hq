@@ -1,20 +1,27 @@
 import { Request, Response } from "express";
-import { RemoteDB, ManagementDB, OrderDB, StoreDB, MenuDB } from '../../configrations/database';
-import { MenuMessages } from "../../utils/messages";
+import axios from "axios";
+
+import { ManagementDB, MenuDB, OrderDB, StoreDB, RemoteDB } from '../../configrations/database';
 import { Database } from "../../models/management/database";
 import { Store } from "../../models/management/store";
-import { Menu, OrderType, Receipt, User, ReceiptType, OrderStatus, ReceiptStatus, Order } from "../../models/store/menu";
 import { Check, CheckProduct, PaymentStatus } from "../../models/store/check";
-
+import { Menu, OrderStatus, OrderType, Receipt, ReceiptStatus, User } from "../../models/store/menu";
+import { MenuMessages } from "../../utils/messages";
 import { processPurchase } from "../../configrations/payments";
-import axios from "axios";
+
+const INTERNAL_ORDER_BASE_URL = process.env.INTERNAL_ORDER_BASE_URL || `http://127.0.0.1:${process.env.PORT || 3000}`;
 
 export const requestMenuFromSlug = async (req: Request, res: Response) => {
     const Slug = req.params.slug;
     try {
         const Database: Database = await (await ManagementDB.Databases.find({ selector: { codename: 'CouchRadore' } })).docs[0];
-        // const Menu: Menu = await RemoteDB(Database, 'quickly-menu-app').get(Slug);
-        const Menu: Menu = await MenuDB.Memory.get(Slug);
+        // Prefer in-memory cache (faster), but fall back to CouchDB if cache isn't initialized.
+        let Menu: Menu;
+        try {
+            Menu = await MenuDB.Memory.get(Slug);
+        } catch (e) {
+            Menu = await RemoteDB(Database, 'quickly-menu-app').get(Slug);
+        }
 
         const Store: Store = await ManagementDB.Stores.get(Menu.store_id);
 
@@ -45,7 +52,6 @@ export const requestMenuFromSlug = async (req: Request, res: Response) => {
     }
 }
 
-
 export const menuComment = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const FormData = req.body.comment;
@@ -59,7 +65,6 @@ export const menuComment = async (req: Request, res: Response) => {
     }
 }
 
-
 export const checkRequest = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const Token = req.params.token;
@@ -68,7 +73,6 @@ export const checkRequest = async (req: Request, res: Response) => {
         switch (orderRequestType.db_name) {
             case 'checks':
                 let Check = orderRequestType;
-
                 // fetch('http://localhost:3000/order/' + Token, { method: 'GET' }).then(isOk => {
                 //     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
                 // }).catch(async err => {
@@ -79,7 +83,7 @@ export const checkRequest = async (req: Request, res: Response) => {
                 //         res.status(200).json({ ok: false, message: 'Hata Oluştu Tekrar Deneyiniz..' });
                 //     }
                 // })
-                axios.get('http://localhost:3000/order/' + Token).then(ax_res => {
+                axios.get(`${INTERNAL_ORDER_BASE_URL}/order/` + Token).then(ax_res => {
                     res.status(200).json({ ok: true, token: Token, type: OrderType.INSIDE });
                 }).catch(async err => {
                     const inMemoryOrderDB = await OrderDB(StoreID, Token, true);
@@ -105,9 +109,7 @@ export const checkRequest = async (req: Request, res: Response) => {
     }
 }
 
-
 export const payReceipt = async (req: Request, res: Response) => {
-
     const StoreID = req.headers.store;
     const Token: string = req.params.token;
     const StoreDatabase = await StoreDB(StoreID);

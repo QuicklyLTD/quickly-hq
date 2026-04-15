@@ -1,182 +1,91 @@
-![](https://kurumsal.quickly.com.tr/assets/client-dark.png)
-***
-# Quickly Headquarters API (v1.2.6)
+# quickly-hq
 
-https://hq.quickly.com.tr - https://www.quickly.com.tr
+Quickly ekosisteminin merkezi API servisidir. Proje; management paneli, magazalar, menu/public istemcileri ve market akislarini tek bir Node.js + TypeScript backend uzerinden sunar.
 
-[TOCM]
+## Icerik
 
-[TOC]
+- [Hizli baslangic](#hizli-baslangic)
+- [Teknik ozet](#teknik-ozet)
+- [Dokumantasyon haritasi](#dokumantasyon-haritasi)
+- [Calistirma komutlari](#calistirma-komutlari)
+- [Konfigurasyon dosyalari](#konfigurasyon-dosyalari)
+- [Dogrulama ve kalite kapilari](#dogrulama-ve-kalite-kapilari)
+- [Deploy ozeti](#deploy-ozeti)
 
-### Libraries
+## Hizli baslangic
 
-- Node.js (v10.12.10) - Express.js (4.16.4)
-- PouchDB (7.0.0)  - Nano (v7.1.1)
-- TypeScript (3.1.6)
-- Bcrypt (v3.0.0) - Joi (14.4.0) - Morgan (v1.9.1)
-- Nodemon (v1.18.17)
+```bash
+npm ci
+cp .env.example .env
+npm run build-ts
+npm run start
+```
 
-### Databases
-- LevelDB
-- RocksDB ('Not Ready Yet')
-- CouchDB (v2.1.1)
-- InMemory Database (PouchDB-Memory)
+Yerel smoke test:
 
-### Folder/File Structure
+```bash
+curl http://127.0.0.1:3000/health
+```
 
-TODO
+## Teknik ozet
 
-### Controllers
+- Runtime: `Node.js` + `Express` + `TypeScript`
+- Veri katmani: `PouchDB` (yerel) + `CouchDB` (uzak) + `Nano`
+- Domain alanlari: `management`, `store`, `market`, `menu`, `order`
+- Guvenlik: oturum tabanli guardlar, Joi schema validasyonu, rate-limit, CORS allowlist
+- Gozlemlenebilirlik: morgan access log + uygulama ici hata loglari
 
-#### Management Controllers
-TODO
-#### Store Controllers
-TODO
-#### Market Controllers
-TODO
+## Dokumantasyon haritasi
 
-### Routes
+- Dokuman merkezi: `docs/README.md`
+- Mimari ve moduller: `docs/architecture.md`
+- API yuzeyi ve endpoint envanteri: `docs/api-reference.md`
+- Ortam degiskenleri ve runtime pathleri: `docs/configuration.md`
+- Deploy, release ve rollback: `docs/deployment.md`
+- Operasyon runbook ve troubleshooting: `docs/operations-runbook.md`
+- Guvenlik notlari ve hardening plani: `docs/security.md`
+- Gelistirici is akisi ve katkida bulunma: `docs/development-workflow.md`
 
-#### Management Routes
+## Calistirma komutlari
 
-- Just need a '**Authorization**' Header for every request. Except two  'Authentication' routes
+- `npm run dev`: TypeScript watch + nodemon
+- `npm run build`: temiz derleme (`dist/`)
+- `npm run build-ts`: deploy oncesi derleme akisi
+- `npm run start`: derlenmis uygulamayi calistirir (`dist/server.js`)
+- `npm run verify`: minimum kalite kapisi (`npm run build`)
+- `npm run deploy`: derle + FTPS uzerinden paket yukle
 
-##### Authentication
+## Konfigurasyon dosyalari
 
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/auth/login** | PUT  | None  | SchemaGuard |`AuthController.Login()`
-**/auth/logout** | PUT  | AuthenticateGuard |`AuthController.Logout()`
-**/auth/verify** | PUT  | AuthenticateGuard |`AuthController.Verify()`
+- `.env.example`: runtime konfigurasyon sablonu
+- `.deploy.env.example`: FTPS deploy konfigurasyon sablonu
+- `.env`: local/production runtime degerleri (commit edilmez)
+- `.deploy.env`: deploy kimlik bilgileri (commit edilmez)
 
-##### Accounts
+Commit disi tutulmasi gereken dizin/dosyalar:
 
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/account** | POST  | AuthenticateGuard, SchemaGuard |`AccountController.createAccount()`
-**/account/:id** | GET  | AuthenticateGuard |`AccountController.getAccount()`
-**/account/:id** | PUT  | AuthenticateGuard, SchemaGuard |`AccountController.updateAccount()`
-**/account/:id** | DELETE  | AuthenticateGuard |`AccountController.deleteAccount()`
-**/accounts** | GET  | AuthenticateGuard |`AccountController.queryAccounts()`
+- `db/`, `backup/`, `documents/`, `dist/`
+- `.env`, `.deploy.env`
 
-##### Owners
+## Dogrulama ve kalite kapilari
 
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/account** | POST  | AuthenticateGuard, SchemaGuard |`OwnerController.createOwner()`
-**/account/:id** | GET  | AuthenticateGuard  |`OwnerController.getOwner()`
-**/account/:id** | PUT  | AuthenticateGuard, SchemaGuard |`OwnerController.updateOwner()`
-**/account/:id** | DELETE  | AuthenticateGuard, |`OwnerController.deleteOwner()`
-**/accounts** | GET  | AuthenticateGuard, |`OwnerController.queryOwners()`
+- Minimum: `npm run build-ts`
+- API davranisi degistiginde: `npm run build && node dist/server.js`
+- Saglik endpointi: `GET /health`
 
-##### Databases
+## Deploy ozeti
 
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/database** | POST  | AuthenticateGuard, SchemaGuard |`DatabaseController.createDatabase()`
-**/database/:id** | GET  | AuthenticateGuard  |`DatabaseController.getDatabase()`
-**/database/:id** | PUT  | AuthenticateGuard, SchemaGuard |`DatabaseController.updateDatabase()`
-**/database/:id** | DELETE  | AuthenticateGuard, |`DatabaseController.deleteDatabase()`
-**/databases** | GET  | AuthenticateGuard, |`DatabaseController.queryDatabases()`
+FTPS tabanli deploy scripti: `scripts/deploy-ftps.sh`
 
-##### Users
+- Varsayilan hedef host: `.deploy.env` icindeki `FTP_HOST`
+- Varsayilan hedef dizin: `FTP_REMOTE_DIR` (varsayilan `/hq.quickly.host`)
+- Zorunlu alanlar: `FTP_HOST`, `FTP_USER`, `FTP_PASS`
 
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/user** | POST  | AuthenticateGuard, SchemaGuard |`UserController.createUser()`
-**/user/:id** | GET  | AuthenticateGuard  |`UserController.getUser()`
-**/user/:id** | PUT  | AuthenticateGuard, SchemaGuard |`UserController.updateUser()`
-**/user/:id** | DELETE  | AuthenticateGuard, |`UserController.deleteUser()`
-**/users** | GET  | AuthenticateGuard, |`UserController.queryUsers()`
+Opsiyonel uploadlar:
 
+- `package.json`
+- `web.config.deploy` -> `web.config`
+- `run-quickly-hq.ps1`
+- `setup-quickly-hq-task.ps1`
 
-##### Groups
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/group** | POST  | AuthenticateGuard, SchemaGuard |`GroupController.createGroup()`
-**/group/:id** | GET  | AuthenticateGuard  |`GroupController.getGroup()`
-**/group/:id** | PUT  | AuthenticateGuard, SchemaGuard |`GroupController.updateGroup()`
-**/group/:id** | DELETE  | AuthenticateGuard, |`GroupController.deleteGroup()`
-**/groups** | GET  | AuthenticateGuard, |`GroupController.queryGroups()`
-
-##### Stores
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/store** | POST  | AuthenticateGuard, SchemaGuard |`StoreController.createStore()`
-**/store/:id** | GET  | AuthenticateGuard  |`StoreController.getStore()`
-**/store/:id** | PUT  | AuthenticateGuard, SchemaGuard |`StoreController.updateStore()`
-**/store/:id** | DELETE  | AuthenticateGuard, |`StoreController.deleteStore()`
-**/stores** | GET  | AuthenticateGuard, |`StoreController.queryStores()`
-
-##### Producers
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/producer** | POST  | AuthenticateGuard, SchemaGuard |`ProducerController.createProducer()`
-**/producer/:id** | GET  | AuthenticateGuard  |`ProducerController.getProducer()`
-**/producer/:id** | PUT  | AuthenticateGuard, SchemaGuard |`ProducerController.updateProducer()`
-**/producer/:id** | DELETE  | AuthenticateGuard, |`ProducerController.deleteProducer()`
-**/producers** | GET  | AuthenticateGuard, |`ProducerController.queryProducers()`
-
-##### Products
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/product** | POST  | AuthenticateGuard, SchemaGuard |`ProductController.createProduct()` 
-**/product/:id** | GET  | AuthenticateGuard  |`ProductController.getProduct()`
-**/product/:id** | PUT  | AuthenticateGuard, SchemaGuard |`ProductController.updateProduct()`
-**/product/:id** | DELETE  | AuthenticateGuard, |`ProductController.deleteProduct()`
-**/products** | GET  | AuthenticateGuard, |`ProductController.queryProducts()`
-
-##### Categories (TODO)
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/category** | POST | AuthenticateGuard, SchemaGuard |`CategoryController.createCategory()`
-**/category/:id** | GET  | AuthenticateGuard  |`CategoryController.getCategory()`
-**/category/:id** | PUT  | AuthenticateGuard, SchemaGuard |`CategoryController.updateCategory()`
-**/category/:id** | DELETE  | AuthenticateGuard, |`CategoryController.deleteCategory()`
-**/categories** | GET | AuthenticateGuard, |`CategoryController.queryCategories()`
-**/sub_category** | POST  | AuthenticateGuard, SchemaGuard |`CategoryController.createSubCategory()`
-**/sub_category/:id** | GET | AuthenticateGuard  |`CategoryController.getSubCategory()`
-**/sub_category/:id** | PUT | AuthenticateGuard, SchemaGuard |`CategoryController.updateSubCategory()`
-**/sub_category/:id** | DELETE  | AuthenticateGuard, |`CategoryController.deleteSubCategory()`
-**/sub_categories** | GET | AuthenticateGuard, |`CategoryController.querySubCategories()`
-
-##### Suppliers
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/supplier** | POST  | AuthenticateGuard, SchemaGuard |`SupplierController.createSupplier()`
-**/supplier/:id** | GET  | AuthenticateGuard  |`SupplierController.getSupplier()`
-**/supplier/:id** | PUT  | AuthenticateGuard, SchemaGuard |`SupplierController.updateSupplier()`
-**/supplier/:id** | DELETE  | AuthenticateGuard, |`SupplierController.deleteSupplier()`
-**/suppliers** | GET  | AuthenticateGuard, |`SupplierController.querySuppliers()`
-
-
-##### Address
-
-Route | Method | Middlewares | Controller
------------- | ------------- | ------------ | ------------- 
-**/address/:country?/:city?/:province?/:district?** | GET   |Authorization| AuthenticateGuard |`AddressController.getAddress()`
-
-
-***
-
-#### Store Routes
-todo
-
-
-#### Market Routes
-todo
-
-
-### Middlewares
-
-#### Management Middlewares
-todo
-#### Store Middlewares
-todo
-#### Market Middlewares
+Detayli release/deploy stratejisi icin `docs/deployment.md` dosyasina bakiniz.

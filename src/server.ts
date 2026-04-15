@@ -11,6 +11,7 @@ import queryParser from 'express-query-int';
 
 import { OrderMiddleware, StoreDB } from './configrations/database'
 import { corsOptions } from './configrations/cors';
+import { ACCESS_LOGS } from './configrations/paths';
 
 import * as DatabaseServices from './services/database';
 
@@ -20,8 +21,12 @@ import * as DatabaseServices from './services/database';
 
 export const app = express();
 
-const accessLogStream = fs.createWriteStream(path.join(__dirname, 'access.log'), { flags: 'a' })
+const PORT = Number(process.env.PORT || 3000);
+const HOST = process.env.HOST || '0.0.0.0';
 
+fs.mkdirSync(path.dirname(ACCESS_LOGS), { recursive: true });
+
+const accessLogStream = fs.createWriteStream(ACCESS_LOGS, { flags: 'a' })
 app.use(morgan('combined', { stream: accessLogStream }))
 app.use(compression());
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 1000, headers: false, message: 'Too Many Request...' }))
@@ -42,10 +47,13 @@ app.use('/order', cors(corsOptions), OrderMiddleware);
 
 // app.use('/order', cors({ origin: 'http://localhost:8100', credentials: true }), OrderMiddleware);
 
+app.get('/health', (req, res) => res.status(200).json({ ok: true }));
 app.all('/*', (req, res) => res.status(404).end());
-app.listen(3000, () => console.log('Quickly Head Quarters Started at http://localhost:3000/'));
+app.listen(PORT, HOST, () => console.log(`Quickly Head Quarters Started at http://${HOST}:${PORT}/`));
 
-DatabaseServices.initializeMenu();
+DatabaseServices.initializeMenu().catch((error) => {
+    console.log('initializeMenu unhandled failure:', error);
+});
 
 /* For Standalone No Reverse-Proxy Operations */
 
@@ -87,11 +95,7 @@ DatabaseServices.initializeMenu();
 
 /* DDOS Jails */
 
-// grep sshd.\*Failed /var/log/auth.log | less
+// grep sshd.\*Failed /var/log/auth.log | less yQ46_Wr!
 
 
 import './local_mutations';
-
-
-
-

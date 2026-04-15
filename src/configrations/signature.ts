@@ -39,7 +39,7 @@
 //                         //     } else {
 //                         //         console.log('Data received', data);
 //                         //         reader.close();
-//                         //         signature.close();
+//                         //         signature.close();/Users/guvensoft/Desktop/QuicklyLABS/quickly-hq/src/configrations/secrets.ts
 //                         //     }
 //                         // });
 //                     }

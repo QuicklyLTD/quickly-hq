@@ -9,3 +9,6 @@
 /couch
 log.txt
 .DS_Store
+.env
+.deploy.env
+.gitnexus
