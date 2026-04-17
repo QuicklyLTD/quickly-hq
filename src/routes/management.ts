@@ -38,6 +38,12 @@ router.post("/auth/verify",
     AuthenticateGuard,
     AuthController.Verify);
 
+router.post("/auth/forgot-password",
+    AuthController.ForgotPassword);
+
+router.post("/auth/reset-password",
+    AuthController.ResetPassword);
+
 // Accounts
 router.get("/account/:id",
     AuthenticateGuard,
