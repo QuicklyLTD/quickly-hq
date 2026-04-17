@@ -37,6 +37,26 @@ app.use(queryParser());
 
 app.use((req, res, next) => { console.log(req.method, req.url); next() })
 
+/* API docs — mount only in non-production. Annotate routes with JSDoc @route blocks to populate. */
+if (process.env.NODE_ENV !== 'production') {
+    // tslint:disable-next-line:no-var-requires
+    const expressSwagger = require('express-swagger-generator')(app);
+    expressSwagger({
+        swaggerDefinition: {
+            info: { title: 'Quickly HQ API', description: 'Internal REST surface', version: '1.0.0' },
+            host: `localhost:${PORT}`,
+            basePath: '/',
+            produces: ['application/json'],
+            schemes: ['http', 'https'],
+            securityDefinitions: {
+                JWT: { type: 'apiKey', in: 'header', name: 'Authorization', description: 'Bearer <token>' }
+            }
+        },
+        basedir: __dirname,
+        files: ['./routes/**/*.js', './routes/**/*.ts']
+    });
+}
+
 app.use('/management', cors(), require('./routes/management'));
 app.use('/store', cors(), require('./routes/store'));
 app.use('/market', cors(), require('./routes/market'));
