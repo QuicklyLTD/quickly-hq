@@ -8,9 +8,9 @@ import { Company, CompanyStatus, CompanyType } from '../../models/management/com
 
 const QuicklyCompany: Company = {
     name: "Quickly Yazılım Kurumsal Hizmetler A.Ş.",
-    email: "info@quickly.com.tr",
+    email: "info@quickly.host",
     phone_number: "5310856881",
-    website: "https://quickly.com.tr",
+    website: "https://quickly.host",
     tax_administration: "Beşiktaş",
     tax_no: "6320729003",
     supervisor: {

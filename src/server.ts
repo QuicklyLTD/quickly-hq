@@ -57,9 +57,9 @@ DatabaseServices.initializeMenu().catch((error) => {
 
 /* For Standalone No Reverse-Proxy Operations */
 
-// const privateKey = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/privkey.pem', 'utf8');
-// const certificate = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/cert.pem', 'utf8');
-// const chain = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.com.tr/chain.pem', 'utf8');
+// const privateKey = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.host/privkey.pem', 'utf8');
+// const certificate = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.host/cert.pem', 'utf8');
+// const chain = fs.readFileSync('/etc/letsencrypt/live/hq.quickly.host/chain.pem', 'utf8');
 // const credentials = { key: privateKey, cert: certificate, ca: chain };
 // const httpServer = http.createServer(app);
 // const httpsServer = https.createServer(credentials, app);

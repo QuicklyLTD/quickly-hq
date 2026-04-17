@@ -1,8 +1,8 @@
 import nodemailer from "nodemailer";
 import { GOOGLE_GMAIL_KEY } from '../../configrations/secrets';
 
-const INFO_ADDRESS = 'info@quickly.com.tr';
-const SUPPORT_ADDRESS = 'support@quickly.com.tr';
+const INFO_ADDRESS = 'info@quickly.host';
+const SUPPORT_ADDRESS = 'support@quickly.host';
 
 const Transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',

@@ -47,7 +47,7 @@ Bu fallback yapisi teknik olarak calisabilir olsa da production guvenligi acisin
 
 ## CORS Modeli
 
-- Statik whitelist (`quickly.com.tr` ve ilgili domainler)
+- Statik whitelist (`quickly.host` ve ilgili domainler)
 - `.env` uzerinden gelen `CORS_ORIGINS`
 - Set birlestirme ile final allowlist
 
