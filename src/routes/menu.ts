@@ -8,8 +8,13 @@ const router = Router();
 
 router.post("/comment/new",
     StoreGuard,
-    ReCaptchaCheck,
     MenuController.menuComment);
+
+router.get("/comments/:storeId",
+    MenuController.listComments);
+
+router.post("/reservation/:storeId",
+    MenuController.createReservation);
 
 router.post("/check/:token",
     StoreGuard,

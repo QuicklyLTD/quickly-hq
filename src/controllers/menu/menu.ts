@@ -65,6 +65,54 @@ export const menuComment = async (req: Request, res: Response) => {
     }
 }
 
+export const listComments = async (req: Request, res: Response) => {
+    const StoreID = req.params.storeId;
+    const limit = Math.min(Number(req.query.limit) || 50, 100);
+    const skip = Number(req.query.offset) || 0;
+    try {
+        const db = await StoreDB(StoreID);
+        const result = await db.find({
+            selector: { db_name: 'comments' },
+            limit,
+            skip
+        });
+        const docs = (result.docs || []).sort((a: any, b: any) => (b.timestamp || 0) - (a.timestamp || 0));
+        res.json({ ok: true, docs });
+    } catch (error) {
+        console.log('listComments error:', error);
+        res.status(404).json({ ok: false, docs: [], message: 'Yorumlar getirilemedi' });
+    }
+}
+
+export const createReservation = async (req: Request, res: Response) => {
+    const StoreID = req.params.storeId;
+    const body = req.body || {};
+    try {
+        const db = await StoreDB(StoreID);
+        const doc = {
+            db_name: 'reservations',
+            store_id: StoreID,
+            name: String(body.name || '').trim(),
+            surname: String(body.surname || '').trim(),
+            phone: String(body.phone || '').trim(),
+            date: Number(body.date) || Date.now(),
+            guest_count: Math.max(1, Number(body.guest_count) || 1),
+            floor_preference: body.floor_preference ? String(body.floor_preference) : undefined,
+            note: body.note ? String(body.note) : undefined,
+            status: 0, // PENDING
+            timestamp: Date.now()
+        };
+        if (!doc.name || !doc.phone) {
+            return res.status(400).json({ ok: false, message: 'Ad ve telefon zorunludur.' });
+        }
+        const result = await db.post(doc);
+        res.json({ ok: true, id: result.id, message: 'Rezervasyon alındı' });
+    } catch (error) {
+        console.log('createReservation error:', error);
+        res.status(500).json({ ok: false, message: 'Rezervasyon oluşturulamadı' });
+    }
+}
+
 export const checkRequest = async (req: Request, res: Response) => {
     const StoreID = req.headers.store;
     const Token = req.params.token;

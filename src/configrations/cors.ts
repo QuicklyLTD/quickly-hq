@@ -2,6 +2,7 @@ import { CorsOptions } from 'cors';
 
 const whitelist = [
     'https://qr.quickly.host',
+    'https://order.quickly.host',
     'https://admin.quickly.host',
     'https://quickly.cafe',
     'https://quickly.restaurant',
